@@ -90,15 +90,6 @@ let summary = 'This course does not participate in online Student Course Experie
 
 const onlineCourseTypes = ['WWW', 'SYN', 'SYO', 'ASY', 'ASO', 'HYF']; //Brock University online courses are defaulted in to our SCES system
 
-const SCESScope = [];
-SCESScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
-SCESScope[1]= `This program does not participate in online Student Course Experience Surveys.`;
-SCESScope[2]= `This program participates in online Student Course Experience Surveys for online courses only.`;
-SCESScope[3]= `This program participates in online Student Course Experience Surveys for online courses only, however, individual instructors can opt-in.`;
-SCESScope[4]= `This program participates in online Student Course Experience Surveys, however, individual instructors can opt-out and <strong><em>this web page will not be updated</em></strong>.`;
-SCESScope[5]= `This program fully participates in online Student Course Experience Surveys.`;
-SCESScope[6]= `This program fully participates in online Student Course Experience Surveys, except for project courses and similar less common course types.`;
-
 const SCESStudentScope = [];
 SCESStudentScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
 SCESStudentScope[1]= `Students should expect to be surveyed on paper, or through alternate means, towards the end of the course.`;
@@ -190,7 +181,7 @@ setCourseRole();
 async function loadData() {
     try {
         //Currently the file is in the same directory as the html file in Brightspace's Public Files, next version will store this at cpi.brocku.ca where it can be dynamically updated
-        const response = await fetch('./SCES_Dept_Requirements.json');
+        const response = await fetch('data/SCES_Dept_Requirements.json');
         if (!response.ok  == true) throw new Error(`HTTP error! status: ${response.status}`);
         const jsonData = await response.json();
         console.log("Loaded JSON:", jsonData); // Debugging
@@ -198,6 +189,25 @@ async function loadData() {
     } catch (jsonError) {
         console.warn("Failed to load JSON file.", jsonError);
         return []; // Return an empty array if an error occurs
+    }
+}
+
+async function loadScopeData() {
+    try {
+        // Attempt to load the SCESScope JSON file
+        const response = await fetch('data/SCES_Scope.json');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const jsonData = await response.json();
+        
+        // Update the SCESScope array with loaded data
+        Object.entries(jsonData).forEach(([key, value]) => {
+            SCESScope[key] = value;
+        });
+        console.log("Loaded SCESScope data from JSON file.");
+    } catch (error) {
+        console.error("Error loading SCESScope data:", error);
+        // If loading fails, keep using the hardcoded values
+        console.log("Using hardcoded SCESScope values.");
     }
 }
 
