@@ -1,16 +1,19 @@
-# brightspace-scheduler
+# Brightspace Student Course Experience Survey (SCES) Information
+This plugin is used to inform students and instructors about the Student Course Experience Survey (SCES) configuration for thier program and Brock University. The web page/plugin will provide students with a link to the survey and instructors links to their optional tasks to configure the survey.
+
+Brock University's Student Course Experience Survey's configuration varies across the 100+ programs at Brock University that participate out of the 140+ programs that offer courses at Brock University. This plugin will provide students with a link to the survey and instructors links to their optional tasks to configure the survey. The web page/plugin also communicates to instructors about the configuration of their program and the survey's, who the Centre for Pedagogical Innovation (CPI) thinks is the contact in their department. Most importantly, the web page/plugin will provides everyone with a consitent path to surveys and survey results.
 
 # Installation:
 
-Before uploading the files to Brightspace, find the resources/js/example-config.js file. Rename this file to config.js. The values for adminLinkId and signupLinkId will need to be filled in later, and this file will need to be uploaded on its own.
+Upload all files to the Brightspace "Public Files" area. For this example we're using "Plugins/SCESabout" as the location. This is path will be needed later.
 
-Upload all files to the Brightspace "Public Files" area. For this example we're using "Plugins/Scheduler" as the location. This is path will be needed later.
+Brock University hosts the JSON files for configuration of the survey in a seperate web application, but this plugin assumes it is contained in Brightspace itself.
 
 # Create 2 Custom Links:
 
 First Link:
-- Name: Scheduler (This title will be shown in a Navbar for instructors to create new schedules)
-- URL: https://{YOUR_BRIGHTSPACE_DOMAIN}/shared/Plugins/Scheduler/setup.html
+- Name: Course Survey (This title will be shown in a Navbar for instructors to create new schedules)
+- URL: https://{YOUR_BRIGHTSPACE_DOMAIN}/shared/Plugins/SCESabout/SCESabout.html
 - Behaviour: Same window
 - Availability:
 	- Share with child org units
@@ -18,29 +21,6 @@ First Link:
 		- Select all roles that should create schedules (not students)
 - Save
 
-Get the new link's ID:
-- Click on the link you just created to edit it
-- Look at the URL for "customlink/edit/{ID_NUMBER}"
-- This ID must be set as the value for adminLinkId in config.js
+# Acknowledgements
 
-Second Link:
-- Name: Scheduler Signup (only used by the scheduler, never shown in a navbar)
-- URL: https://{YOUR_BRIGHTSPACE_DOMAIN}/shared/Plugins/Scheduler/signup.html
-- Behaviour: Same window
-- Availability: Share with child org units
-- Save
-
-Get the new link's ID:
-- Click on the link you just created to edit it
-- Look at the URL for "customlink/edit/{ID_NUMBER}"
-- This ID must be set as the value for signupLinkId in config.js
-
-Save the config.js file with the new link IDs. Add the numeric IDs for any Student, Teaching Assistant, and Instructor roles to the config.js file. Upload config.js to Plugins/Scheduler/resources/js/
-
-Add the first link, "Scheduler" to a navbar in a course (or all courses).
-
-Access the course as an instructor to create a new schedule for the students.
-
-TODO:
-- merge GROUPS and existingTimeSlots global vars in resources/js/setup.js
-- make it work with the New Content Experience
+Thanks to mattdig for the initial code and appraoch to the scheduler tool that inspired this plugin. This plgin is a fork of Matt's scheduler tool in tribute to his work, despite the fact that it is not a scheduler tool.
