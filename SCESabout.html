@@ -9,57 +9,29 @@
 <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2025.2.233/homepages.css" />
 <style>
 /*import brightspace fonts*/
-@font-face{font-family: 'Lato';src: url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-400.woff2');}
-@font-face {font-family: 'Lato';src: url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-700.woff2');font-weight: bold;}
-*{font-size:18px; font-family: Lato, 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;}
-/*styles*/
-.container-fluid{padding:0px 30px 20px 30px; max-width: 1230px;margin:auto;}
-input[type=text],label,textarea{width: 100%;}
-input[type=checkbox], input[type=radio]{width: 25px; height: 25px; margin:0px;}
-label{margin-bottom:0px;}
-label.inline{width:auto; padding:0px 0px 0px 10px; margin-right:10px;}
-h3,h4{font-weight: bold; font-size: 18px;}
-.error {
-    color: red;margin-top: 10px;
-}
-.warn {
-    margin-top: 10px;text-align: center;
-}
-#summary {
-    margin:20px;font-size: larger;
-}
-#SCESOutput {margin-top:20px;text-align: center;margin: auto;padding-left: 10%;padding-right: 10%;}
-.container {
-    display: flex;width: 100%;
-}
-#seperateStudentPreview {margin: 20px;}
-#previewStudentGuidance {
-    border: #555 solid 1px;padding: 10px;margin: 1%;font-size: 0.9em;color: #555;line-height: 1.5;
-}
-.left {
-    flex: 2; /* 2 parts out of 3 */
-    background-color: #f4f4f4;
-    padding: 20px;
-    text-align: left;
-    margin-right: 4%;
-}
-.right {
-    flex: 1; /* 1 part out of 3 */
-    background-color: #ddd;
-    padding: 20px;
-    text-align: left;
-}
-ul {
-    list-style-type: disc;margin: 36px 0;padding-left: 20px;
-}
-ul li {
-    margin-bottom: 8px;line-height: 1.5;
-}
-body {
-    margin: auto;padding: auto;
-}
-h2 {font-size:140%}
-.right h2 {margin-bottom: 1.1em;}
+@font-face{font-family:'Lato';src:url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-400.woff2');}
+@font-face{font-family:'Lato';src:url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-700.woff2');font-weight:bold;}
+*{font-size:18px;font-family:Lato,'Lucida Sans','Lucida Sans Regular','Lucida Grande','Lucida Sans Unicode',Geneva,Verdana,sans-serif;}
+.container-fluid{padding:0px 30px 20px 30px;max-width:1230px;margin:auto;}
+input[type=text],label,textarea{width:100%;}
+input[type=checkbox],input[type=radio]{width:25px;height:25px;margin:0;}
+label{margin-bottom:0;}
+label.inline{width:auto;padding:0 0 0 10px;margin-right:10px;}
+h3,h4{font-weight:bold;font-size:18px;}
+.error{color:red;margin-top:10px;}
+.warn{margin-top:10px;text-align:center;}
+#summary{margin:20px;font-size:larger;}
+#SCESOutput{margin:20px auto 0;text-align:center;padding:0 10%;}
+.container{display:flex;width:100%;}
+#seperateStudentPreview{margin:20px;}
+#previewStudentGuidance{border:1px solid #555;padding:10px;margin:1%;font-size:.9em;color:#555;line-height:1.5;}
+.left{flex:2;background-color:#f4f4f4;padding:20px;text-align:left;margin-right:4%;}
+.right{flex:1;background-color:#ddd;padding:20px;text-align:left;}
+ul{list-style-type:disc;margin:36px 0;padding-left:20px;}
+ul li{margin-bottom:8px;line-height:1.5;}
+body{margin:auto;padding:auto;}
+h2{font-size:140%;}
+.right h2{margin-bottom:1.1em;}
 </style>
 <script type="text/javascript" src="resources/js/jquery-2.2.4.min.js"></script>
 <script type="text/javascript" src="resources/js/brightspace.js?v=1.0"></script>
@@ -74,10 +46,29 @@ h2 {font-size:140%}
 </head>
 <body class="content" role="document"><div class="container-fluid">
 <script>
- // Global variables
+// Configuration
+const CONFIG = {
+    urls: {
+        deptRequirements: 'data/SCES_Dept_Requirements.json',
+        scesScope: 'data/SCES_Scope.json'
+    },
+    onlineCourseTypes: ['WWW', 'SYN', 'SYO', 'ASY', 'ASO', 'HYF'] // Brock University online course types
+};
+
+const SCESStudentScope = [];
+SCESStudentScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
+SCESStudentScope[1]= `Students should expect to be surveyed on paper, or through alternate means, towards the end of the course.`;
+SCESStudentScope[2]= `<p>Because this course is one of the program's online course offerings a pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
+SCESStudentScope[3]= `<p>This program participates in online Student Course Experience Surveys for online courses only, however, individual instructors can opt-in.<p>`;
+SCESStudentScope[4]= `<p>If the instructor has not opted-out of online Student Course Experience Surveys, students will be emailed online survey instructions near the scheduled end of the course.</p><p>A pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
+SCESStudentScope[5]= `<p>Students will be emailed online survey instructions near the scheduled end of the course.</p> <p>A pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
+SCESStudentScope[6]= SCESStudentScope[5];
+
+// Global variables
 let courseType = "";
 let QBank = "";
 let QBankResults = [];
+let SCESScope = [];
 let brockCourse = false;
 let SCESProgramParticipant = false;
 let SCESCourseParticipant = false;
@@ -88,16 +79,9 @@ let dept = "";
 let output = '';
 let summary = 'This course does not participate in online Student Course Experience Surveys.';
 
-const onlineCourseTypes = ['WWW', 'SYN', 'SYO', 'ASY', 'ASO', 'HYF']; //Brock University online courses are defaulted in to our SCES system
+const onlineCourseTypes = CONFIG.onlineCourseTypes;
 
-const SCESStudentScope = [];
-SCESStudentScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
-SCESStudentScope[1]= `Students should expect to be surveyed on paper, or through alternate means, towards the end of the course.`;
-SCESStudentScope[2]= `<p>Because this course is one of the program's online course offerings a pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
-SCESStudentScope[3]= `<p>This program participates in online Student Course Experience Surveys for online courses only, however, individual instructors can opt-in.<p>`;
-SCESStudentScope[4]= `<p>If the instructor has not opted-out of online Student Course Experience Surveys, students will be emailed online survey instructions near the scheduled end of the course.</p><p>A pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
-SCESStudentScope[5]= `<p>Students will be emailed online survey instructions near the scheduled end of the course.</p> <p>A pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
-SCESStudentScope[6]= SCESStudentScope[5];
+
 
 const bs = new Brightspace(ORG_UNIT_ID);
 
@@ -181,7 +165,7 @@ setCourseRole();
 async function loadData() {
     try {
         //Currently the file is in the same directory as the html file in Brightspace's Public Files, next version will store this at cpi.brocku.ca where it can be dynamically updated
-        const response = await fetch('data/SCES_Dept_Requirements.json');
+        const response = await fetch(CONFIG.urls.deptRequirements);
         if (!response.ok  == true) throw new Error(`HTTP error! status: ${response.status}`);
         const jsonData = await response.json();
         console.log("Loaded JSON:", jsonData); // Debugging
@@ -195,7 +179,7 @@ async function loadData() {
 async function loadScopeData() {
     try {
         // Attempt to load the SCESScope JSON file
-        const response = await fetch('data/SCES_Scope.json');
+        const response = await fetch(CONFIG.urls.scesScope);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const jsonData = await response.json();
         
@@ -233,17 +217,6 @@ async function lookupSCES(outputDiv) {
         loadData().then(jsonData => {
             if (brockCourse  == true) {
                 QBankResults = jsonData.filter(row => row['Qbank Dept'] === QBank);
-
-                /*
-                SCES Scope values:
-                0 OUT, unknown
-                1 OUT, all courses
-                2 IN, online only
-                3 IN, online + individual opt-ins
-                4 IN, online + individual opt-outs
-                5 IN, full
-                6 IN, full minus PRO (project) courses
-                */
             
                 // Set SCES context variables - very important logic here!
                 /* */
