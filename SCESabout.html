@@ -55,7 +55,7 @@ const CONFIG = {
     onlineCourseTypes: ['WWW', 'SYN', 'SYO', 'ASY', 'ASO', 'HYF'] // Brock University online course types
 };
 
-const SCESStudentScope = [];
+const SCESStudentScope = []; //SCES Student Scope is an array of strings that are used to display the student guidance based on the SCES Scope value, but since some are reused, it's easier to just use an array
 SCESStudentScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
 SCESStudentScope[1]= `Students should expect to be surveyed on paper, or through alternate means, towards the end of the course.`;
 SCESStudentScope[2]= `<p>Because this course is one of the program's online course offerings a pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
@@ -80,8 +80,6 @@ let output = '';
 let summary = 'This course does not participate in online Student Course Experience Surveys.';
 
 const onlineCourseTypes = CONFIG.onlineCourseTypes;
-
-
 
 const bs = new Brightspace(ORG_UNIT_ID);
 
@@ -217,12 +215,7 @@ async function lookupSCES(outputDiv) {
         loadData().then(jsonData => {
             if (brockCourse  == true) {
                 QBankResults = jsonData.filter(row => row['Qbank Dept'] === QBank);
-            
-                // Set SCES context variables - very important logic here!
-                /* */
-                console.log("QBankResults:", QBankResults); // Debugging
-                console.log("QBankResults Department Scope: ", QBankResults[0]['Scope'], SCESScope[QBankResults[0]['Scope']]); // Debugging
-                /* */
+        
                 SCESProgramParticipant = QBankResults.length > 0 && QBankResults[0]['Qbank Dept'].length > 0 && QBankResults[0]['Scope'] > 1;
                 SCESCourseParticipant = SCESProgramParticipant && (QBankResults[0]['Scope'] > 2 || isOnlineCourse(courseType) == true);
 
@@ -239,89 +232,99 @@ async function lookupSCES(outputDiv) {
         });
 }
 
-function displaySCESContext(SCESoutputDiv) {
+async function displaySCESContext(SCESoutputDiv) {
     let studentGuidance = '';
 
-    if (SCESProgramParticipant == true && SCESCourseParticipant == true) {
-        summary = SCESScope[QBankResults[0]['Scope']];
-        studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
-     }
-    else if (!SCESProgramParticipant  == true && SCESCourseParticipant  == true) {
-        if (isOnlineCourse(courseType)  == true) {
-            summary = "Because this course is an online course, this course is participating in online Student Course Experience Surveys even though the rest of the department courses do not participate.";
-            studentGuidance = SCESStudentScope[5];
-        }
-    }
-    else if (SCESProgramParticipant == false) {
-        summary = SCESScope[QBankResults[0]['Scope']];
-        studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
-    }
+    try {
+        // Make sure we have the latest scope data
+        await loadScopeData();
+        console.log("SCESScope after loading:", SCESScope);
+        console.log("QBankResults: ", QBankResults);
+        console.log("SCESProgramParticipant: ", SCESProgramParticipant);
+        console.log("SCESCourseParticipant: ", SCESCourseParticipant);
 
-    else {
-        if (brockCourse  == true) {
+        if (SCESProgramParticipant == true && SCESCourseParticipant == true) {
             summary = SCESScope[QBankResults[0]['Scope']];
+            studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
+        }
+        else if (!SCESProgramParticipant == true && SCESCourseParticipant == true) {
             if (isOnlineCourse(courseType) == true) {
-                studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
+                summary = "Because this course is an online course, this course is participating in online Student Course Experience Surveys even though the rest of the department courses do not participate.";
+                studentGuidance = SCESStudentScope[5];
             }
         }
-        else {
-            summary = 'This course is not participating in online Student Course Experience Surveys.';
+        else if (SCESProgramParticipant == false) {
+            summary = SCESScope[QBankResults[0]['Scope']];
+            studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
         }
-    }
-    
-    // Construct HTML content for the output
-    output = `<div id="summary"><h1>Student Course Experience Surveys for <br>${courseCode}</h1><p>${summary}</p></div>`;
-    if (courseRole == "Student") {
-        output += `<div id="guidance" >${studentGuidance}</div>`;
-    } else if (brockCourse && SCESCourseParticipant) { // Lots of conditional logic below, in the string template, not the if/else structures used elsewhere. More info on string templates at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
-        let instructorGuidance = `
-            <div class="container">
-                <div class="left rounded p-3 border">
-                    <h2>Options</h2>
-                    <ul>
-                        ${String(courseRole).includes("Admin") || courseRole == "Instructor" || courseRole == "Teaching Assistant" ? `
-                            <li><a href="https://my-brocku.bluera.com/reports" target="_blank" rel="noopener">Download my survey reports (opens in a new window)</a></li>
-                            <li><a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">Edit or preview my course surveys (opens in a new window)</a>
-                            </li>` : ''}
+        else {
+            if (brockCourse == true) {
+                summary = SCESScope[QBankResults[0]['Scope']];
+                if (isOnlineCourse(courseType) == true) {
+                    studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
+                }
+            }
+            else {
+                summary = 'This course is not participating in online Student Course Experience Surveys.';
+            }
+        }
+        
+        // Construct HTML content for the output
+        let output = `<div id="summary"><h1>Student Course Experience Surveys for <br>${courseCode}</h1><p>${summary}</p></div>`;
+        
+        if (courseRole == "Student") {
+            output += `<div id="guidance" >${studentGuidance}</div>`;
+        } else if (brockCourse && SCESCourseParticipant) {
+            let instructorGuidance = `
+                <div class="container">
+                    <div class="left rounded p-3 border">
+                        <h2>Options</h2>
+                        <ul>
+                            ${String(courseRole).includes("Admin") || courseRole == "Instructor" || courseRole == "Teaching Assistant" ? `
+                                <li><a href="https://my-brocku.bluera.com/reports" target="_blank" rel="noopener">Download my survey reports (opens in a new window)</a></li>
+                                <li><a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">Edit or preview my course surveys (opens in a new window)</a>
+                                </li>` : ''}
                             <li><a href="https://brocku.ca/pedagogical-innovation/student-course-experience-survey/" target="_blank" rel="noopener">
                             About Student Course Experience Surveys at Brock University (opens in a new window)</a></li>
-                    </ul>
-                    <p>
-                        All Brock academic units can utilize the Explorance Blue SCES system. Online courses are connected by default. Requirements for Student Course Experience Surveys are described in the 
-                        <a href="https://brocku.ca/human-resources/collective-agreements/" target="_blank">BUFA Collective Agreement</a>, including Articles 16.03 (i) and 16.04 (i) describing the role of a Departmental or Centre Committee.
-                    </p>
-                </div>
-                <div class="right rounded p-3 border">
-                    <h2>About</h2>
-                    ${courseRole == "Teaching Assistant" ? `<p>For Teaching Assistants, questions about Student Course Experience Surveys for this course should first be directed to the course instructor.</p>` : ''}
-                    ${QBankResults[0]['Secondaries'] === "Yes" ? `<p>Online Student Course Experience Surveys for ${QBank} courses include separate surveys for Teaching Assistants.</p>` : ''}
-                    ${(QBankResults[0]['Reports to Chair'] === "Yes" || QBankResults[0]['Reports to Contact'] === "Yes") ? `
-                        <p>A summary of online Student Course Experience Surveys for ${QBank} are sent to the department ${
-                            QBankResults[0]['Reports to Chair'] === "Yes" && QBankResults[0]['Reports to Contact'] === "Yes" ? 'Chair and Contact' :
-                            QBankResults[0]['Reports to Chair'] === "Yes" ? 'Chair' : 'Contact'
-                        }.</p>` : ''}
-                    `;
+                        </ul>
+                        <p>
+                            All Brock academic units can utilize the Explorance Blue SCES system. Online courses are connected by default. Requirements for Student Course Experience Surveys are described in the 
+                            <a href="https://brocku.ca/human-resources/collective-agreements/" target="_blank">BUFA Collective Agreement</a>, including Articles 16.03 (i) and 16.04 (i) describing the role of a Departmental or Centre Committee.
+                        </p>
+                    </div>
+                    <div class="right rounded p-3 border">
+                        <h2>About</h2>
+                        ${courseRole == "Teaching Assistant" ? `<p>For Teaching Assistants, questions about Student Course Experience Surveys for this course should first be directed to the course instructor.</p>` : ''}
+                        ${QBankResults[0]['Secondaries'] === "Yes" ? `<p>Online Student Course Experience Surveys for ${QBankResults[0]['Program-Name']} (${QBank}) courses include separate surveys for Teaching Assistants.</p>` : ''}
+                        ${(QBankResults[0]['Reports to Chair'] === "Yes" || QBankResults[0]['Reports to Contact'] === "Yes") ? `
+                            <p>A summary of online Student Course Experience Surveys for ${QBankResults[0]['Program-Name']} are sent to the department ${
+                                QBankResults[0]['Reports to Chair'] === "Yes" && QBankResults[0]['Reports to Contact'] === "Yes" ? 'Chair and Contact' :
+                                QBankResults[0]['Reports to Chair'] === "Yes" ? 'Chair' : 'Contact'
+                            }.</p>` : ''}
+                        `;
 
-                    if (courseRole == "Instructor" || courseRole.includes("Admin") ) {
-                        instructorGuidance += `The contact${QBankResults[0]['Contact'].includes(';') ? 's' : ''} CPI has on record for ${QBank} 
-                        ${QBankResults[0]['Contact'].includes(';') ? 'are' : 'is'}: `;
-                        instructorGuidance +=  parseAndCreateMailtoLinks(QBankResults[0]['Contact']);
-                    } 
+                        if (courseRole == "Instructor" || courseRole.includes("Admin") ) {
+                            instructorGuidance += `The contact${QBankResults[0]['Contact'].includes(';') ? 's' : ''} CPI has on record for ${QBank} 
+                            ${QBankResults[0]['Contact'].includes(';') ? 'are' : 'is'}: `;
+                            instructorGuidance +=  parseAndCreateMailtoLinks(QBankResults[0]['Contact']);
+                        } 
 
-            instructorGuidance += `
+                instructorGuidance += `
+                    </div>
                 </div>
-            </div>
-                    <div id="seperateStudentPreview"><h3>What your students see on this page:</h3></div>
-                    <div id="previewStudentGuidance" class="rounded rounded-3 p-3 border">${studentGuidance}</div>
-                    <p>More information on <a href="https://cpibrock.atlassian.net/wiki/spaces/BLEDOCU/pages/1073348613/How+can+students+complete+the+surveys#Through-shared-links-or-QR-codes" target="_blank" rel="noopener">how students can respond to online Student Course Experience Surveys</a>.</p>	
-            `;
-        output += instructorGuidance;
+                        <div id="seperateStudentPreview"><h3>What your students see on this page:</h3></div>
+                        <div id="previewStudentGuidance" class="rounded rounded-3 p-3 border">${studentGuidance}</div>
+                        <p>More information on <a href="https://cpibrock.atlassian.net/wiki/spaces/BLEDOCU/pages/1073348613/How+can+students+complete+the+surveys#Through-shared-links-or-QR-codes" target="_blank" rel="noopener">how students can respond to online Student Course Experience Surveys</a>.</p>	
+                `;
+            output += instructorGuidance;
+        }
+        
+        SCESoutputDiv.innerHTML = output;
+    } catch (error) {
+        console.error('Error in displaySCESContext:', error);
+        SCESoutputDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
     }
-    
-    // Render the HTML directly
-    SCESoutputDiv.innerHTML = output;
-    }
-    
+}
 
 // Run the function after ensuring course data is available
 getCourse().then(() => {
@@ -341,6 +344,5 @@ getCourse().then(() => {
 <div id="SCESOutput">Looking up Student Course Experience Survey information for this course...</div>
 
 </div>
-</body>
 </body>
 </html>
