@@ -114,9 +114,14 @@ async   function getCourse(){ // Adapted from using /d2l/api/lp/(version)/course
         return course;
     }
         
+/**
+ * Determines if a course type is considered an online course
+ * @param {string} courseType - The course type to check
+ * @returns {boolean} True if the course is an online course
+ */
 function isOnlineCourse(courseType) {
-        return onlineCourseTypes.indexOf(courseType) >= 0;
-    }
+    return onlineCourseTypes.indexOf(courseType) >= 0;
+}
     
 function processCourseCode(code) {
     // Split the input string on "-"
@@ -239,15 +244,20 @@ async function lookupSCES(outputDiv) {
                 throw new Error(`No survey data available for department: ${QBank}`);
             }
             
-            // Determine participation status
-            SCESProgramParticipant = QBankResults[0]['Qbank Dept'].length > 0 && 
-                                  QBankResults[0]['Scope'] > 1;
+            // Determine program participation
+            const hasValidDept = QBankResults[0]['Qbank Dept'].length > 0;
+            const hasValidScope = QBankResults[0]['Scope'] > 1;
+            SCESProgramParticipant = hasValidDept && hasValidScope;
             
+            // Determine course participation
+            const scopeGreaterThan2 = QBankResults[0]['Scope'] > 2;
             SCESCourseParticipant = SCESProgramParticipant && 
-                                 (QBankResults[0]['Scope'] > 2 || isOnlineCourse(courseType));
+                                 (scopeGreaterThan2 || isOnlineCourse(courseType));
+
 
             // Special case: Project courses (Scope 6) don't participate if type is PRO
             if (QBankResults[0]['Scope'] === 6 && courseType === "PRO") {
+                console.log('Applying special case: Project course (Scope 6) with type PRO');
                 SCESCourseParticipant = false;
             }
 
@@ -283,10 +293,18 @@ async function displaySCESContext(SCESoutputDiv) {
         await loadScopeData();
 
         // Determine the appropriate message based on participation status
+        const currentScope = QBankResults[0]['Scope'];
+        
         if (SCESProgramParticipant && SCESCourseParticipant) {
             // Both program and course are participating
-            summary = SCESScope[QBankResults[0]['Scope']];
-            studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
+            summary = SCESScope[currentScope];
+            
+            // Special case: If scope is 4 but course is not online, use scope 3's guidance
+            if (currentScope == 4 && !isOnlineCourse(courseType)) {
+                studentGuidance = SCESStudentScope[3];
+            } else {
+                studentGuidance = SCESStudentScope[currentScope];
+            }
         }
         else if (!SCESProgramParticipant && SCESCourseParticipant && isOnlineCourse(courseType)) {
             // Special case: Online courses in non-participating programs
@@ -295,14 +313,14 @@ async function displaySCESContext(SCESoutputDiv) {
         }
         else if (!SCESProgramParticipant) {
             // Program is not participating
-            summary = SCESScope[QBankResults[0]['Scope']];
-            studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
+            summary = SCESScope[currentScope];
+            studentGuidance = SCESStudentScope[currentScope];
         }
         else if (brockCourse) {
             // Brock course but not participating
-            summary = SCESScope[QBankResults[0]['Scope']];
+            summary = SCESScope[currentScope];
             if (isOnlineCourse(courseType)) {
-                studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
+                studentGuidance = SCESStudentScope[currentScope];
             }
         } else {
             // Not a Brock course
