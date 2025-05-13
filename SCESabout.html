@@ -58,10 +58,10 @@ const CONFIG = {
 const SCESStudentScope = []; //SCES Student Scope is an array of strings that are used to display the student guidance based on the SCES Scope value, but since some are reused, it's easier to just use an array
 SCESStudentScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
 SCESStudentScope[1]= `Students should expect to be surveyed on paper, or through alternate means, towards the end of the course.`;
-SCESStudentScope[2]= `<p>Because this course is one of the program's online course offerings a pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
-SCESStudentScope[3]= `<p>This program participates in online Student Course Experience Surveys for online courses only, however, individual instructors can opt-in.<p>`;
-SCESStudentScope[4]= `<p>If the instructor has not opted-out of online Student Course Experience Surveys, students will be emailed online survey instructions near the scheduled end of the course.</p><p>A pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
-SCESStudentScope[5]= `<p>Students will be emailed online survey instructions near the scheduled end of the course.</p> <p>A pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.</p>`;
+SCESStudentScope[2]= `Because this course is one of the program's online course offerings a pop-up will appear in Brightspace with links to each available survey, but students can always <a href="https://my-brocku.bluera.com/tasks" target="_blank" rel="noopener">check for any open surveys online (opens in a new window)</a>.`;
+SCESStudentScope[3]= `This program participates in online Student Course Experience Surveys for online courses only, however, individual instructors can opt-in.`;
+SCESStudentScope[4]= `If the instructor has not opted-out of online Student Course Experience Surveys, students will be emailed online survey instructions near the scheduled end of the course.`;
+SCESStudentScope[5]= `Students will be emailed online survey instructions near the scheduled end of the course.`;
 SCESStudentScope[6]= SCESStudentScope[5];
 
 // Global variables
@@ -174,99 +174,139 @@ async function loadData() {
     }
 }
 
+/**
+ * Loads SCES scope data from the configured URL and updates the SCESScope array
+ * Falls back to hardcoded values if loading fails
+ */
 async function loadScopeData() {
     try {
         // Attempt to load the SCESScope JSON file
         const response = await fetch(CONFIG.urls.scesScope);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const jsonData = await response.json();
         
         // Update the SCESScope array with loaded data
         Object.entries(jsonData).forEach(([key, value]) => {
             SCESScope[key] = value;
         });
-        console.log("Loaded SCESScope data from JSON file.");
     } catch (error) {
+        // Log error but continue with hardcoded values
         console.error("Error loading SCESScope data:", error);
-        // If loading fails, keep using the hardcoded values
-        console.log("Using hardcoded SCESScope values.");
+        // Note: The array is already initialized with default values
     }
 }
 
+/**
+ * Main function to look up and display SCES information for a course
+ * @param {HTMLElement} outputDiv - The DOM element where output will be rendered
+ */
 async function lookupSCES(outputDiv) {
-        // Ensure course data is available before proceeding
+    try {
+        // Get course information from the API
         const course = await getCourse();
-        console.log("Course data:", course.OrgUnit); // Debugging
+        if (!course?.OrgUnit) {
+            throw new Error('Could not retrieve course information');
+        }
+        
+        // Set course code and banner image
         courseCode = course.OrgUnit.Code;
-        document.getElementById("course-banner").src = course.OrgUnit.ImageUrl; //Set banner image, sad that it's too hard to get the full size image :(
-        if (courseCode === false) {
-            outputDiv.innerHTML = '<p class="error">Please enter a course code.</p>';
+        document.getElementById("course-banner").src = course.OrgUnit.ImageUrl;
+        
+        if (!courseCode) {
+            outputDiv.innerHTML = '<p class="error">Please enter a valid course code.</p>';
             return;
         }
 
+        // Process the course code to extract department and course information
         try {
             processCourseCode(courseCode);
         } catch (error) {
             outputDiv.innerHTML = `<p class="error">${error.message}</p>`;
-            return; // Stop further execution if processing fails
+            return; // Stop execution if processing fails
         }
 
-        // Ensure loadData() completes before filtering
-        loadData().then(jsonData => {
-            if (brockCourse  == true) {
-                QBankResults = jsonData.filter(row => row['Qbank Dept'] === QBank);
+        // Load department requirements data
+        const jsonData = await loadData();
         
-                SCESProgramParticipant = QBankResults.length > 0 && QBankResults[0]['Qbank Dept'].length > 0 && QBankResults[0]['Scope'] > 1;
-                SCESCourseParticipant = SCESProgramParticipant && (QBankResults[0]['Scope'] > 2 || isOnlineCourse(courseType) == true);
-
-                //Scope 6 is a little tricker, it's for project courses and similar less common course types
-                if (QBankResults[0]['Scope'] == 6 && courseType == "PRO") SCESCourseParticipant = false;
-
-                console.log("SCESProgramParticipant: ", SCESProgramParticipant, "SCESCourseParticipant: ",SCESCourseParticipant); // Debugging
-                displaySCESContext(SCESOutput);
-            } else {
-                console.log("Not a Brock course."); // Debugging
-                SCESOutput.innerHTML = '<div id="summary"><h2>This course is not participating in online Student Course Experience Surveys.</h2></div>';
+        if (brockCourse) {
+            // Filter for current department's QBank
+            QBankResults = jsonData.filter(row => row['Qbank Dept'] === QBank);
+            
+            if (QBankResults.length === 0) {
+                throw new Error(`No survey data available for department: ${QBank}`);
             }
             
-        });
+            // Determine participation status
+            SCESProgramParticipant = QBankResults[0]['Qbank Dept'].length > 0 && 
+                                  QBankResults[0]['Scope'] > 1;
+            
+            SCESCourseParticipant = SCESProgramParticipant && 
+                                 (QBankResults[0]['Scope'] > 2 || isOnlineCourse(courseType));
+
+            // Special case: Project courses (Scope 6) don't participate if type is PRO
+            if (QBankResults[0]['Scope'] === 6 && courseType === "PRO") {
+                SCESCourseParticipant = false;
+            }
+
+                // Display the context with the loaded data
+            displaySCESContext(SCESOutput);
+        } else {
+            // Not a Brock course
+            SCESOutput.innerHTML = `
+                <div id="summary">
+                    <h2>This course is not participating in online Student Course Experience Surveys.</h2>
+                </div>`;
+        }
+    } catch (error) {
+        console.error('Error in lookupSCES:', error);
+        outputDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h2>Error</h2>
+                <p>An error occurred while loading course information: ${error.message}</p>
+            </div>`;
+    }
 }
 
+/**
+ * Displays the SCES context based on course and program participation
+ * @param {HTMLElement} SCESoutputDiv - The output container element
+ */
 async function displaySCESContext(SCESoutputDiv) {
     let studentGuidance = '';
+    let summary = '';
 
     try {
-        // Make sure we have the latest scope data
+        // Load the latest scope data
         await loadScopeData();
-        console.log("SCESScope after loading:", SCESScope);
-        console.log("QBankResults: ", QBankResults);
-        console.log("SCESProgramParticipant: ", SCESProgramParticipant);
-        console.log("SCESCourseParticipant: ", SCESCourseParticipant);
 
-        if (SCESProgramParticipant == true && SCESCourseParticipant == true) {
+        // Determine the appropriate message based on participation status
+        if (SCESProgramParticipant && SCESCourseParticipant) {
+            // Both program and course are participating
             summary = SCESScope[QBankResults[0]['Scope']];
             studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
         }
-        else if (!SCESProgramParticipant == true && SCESCourseParticipant == true) {
-            if (isOnlineCourse(courseType) == true) {
-                summary = "Because this course is an online course, this course is participating in online Student Course Experience Surveys even though the rest of the department courses do not participate.";
-                studentGuidance = SCESStudentScope[5];
-            }
+        else if (!SCESProgramParticipant && SCESCourseParticipant && isOnlineCourse(courseType)) {
+            // Special case: Online courses in non-participating programs
+            summary = "Because this course is an online course, this course is participating in online Student Course Experience Surveys even though the rest of the department courses do not participate.";
+            studentGuidance = SCESStudentScope[5];
         }
-        else if (SCESProgramParticipant == false) {
+        else if (!SCESProgramParticipant) {
+            // Program is not participating
             summary = SCESScope[QBankResults[0]['Scope']];
             studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
         }
-        else {
-            if (brockCourse == true) {
-                summary = SCESScope[QBankResults[0]['Scope']];
-                if (isOnlineCourse(courseType) == true) {
-                    studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
-                }
+        else if (brockCourse) {
+            // Brock course but not participating
+            summary = SCESScope[QBankResults[0]['Scope']];
+            if (isOnlineCourse(courseType)) {
+                studentGuidance = SCESStudentScope[QBankResults[0]['Scope']];
             }
-            else {
-                summary = 'This course is not participating in online Student Course Experience Surveys.';
-            }
+        } else {
+            // Not a Brock course
+            summary = 'This course is not participating in online Student Course Experience Surveys.';
         }
         
         // Construct HTML content for the output
@@ -326,9 +366,33 @@ async function displaySCESContext(SCESoutputDiv) {
     }
 }
 
-// Run the function after ensuring course data is available
-getCourse().then(() => {
-    lookupSCES(document.getElementById('SCESOutput'));
+// Initialize the application when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        // Start by getting course data, then look up SCES information
+        getCourse()
+            .then(() => {
+                lookupSCES(document.getElementById('SCESOutput'));
+            })
+            .catch(error => {
+                // Handle any initialization errors
+                console.error('Error initializing SCES information:', error);
+                const outputDiv = document.getElementById('SCESOutput') || document.body;
+                outputDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h2>Error</h2>
+                        <p>An error occurred while loading course information. Please refresh the page to try again.</p>
+                    </div>`;
+            });
+    } catch (error) {
+        console.error('Fatal error during initialization:', error);
+        const outputDiv = document.getElementById('SCESOutput') || document.body;
+        outputDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h2>Critical Error</h2>
+                <p>A critical error occurred. Please refresh the page to try again.</p>
+            </div>`;
+    }
 });
 
 //Sets banner
