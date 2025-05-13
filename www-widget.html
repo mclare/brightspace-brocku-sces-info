@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en-ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCES Widget</title>
+    <script src="https://cpi.brocku.ca/SCESabout/resources/js/jquery-2.2.4.min.js"></script>
+</head>
+<style>
+    #sces-widget {
+        font-family: sans-serif;background: #f9f9f9;border: 1px solid #ccc;padding: 1em;border-radius: 8px;max-width: 800px;
+    }
+    #sces-widget select {
+        padding: 0.5em;font-size: 1em;
+    }
+    #sces-result h3 {
+        margin-top: 1em;color: #CC0000;
+    }
+    #sces-result a {
+        color: #0077cc;text-decoration: none;
+    }
+    #sces-result a:hover {
+        text-decoration: underline;
+    }
+    </style>
+<body>
+<div id="sces-widget" class="sces-widget"></div>
+
+<script>
+const CONFIG = {
+    urls: {
+        deptRequirements: 'https://cpi.brocku.ca/SCESabout/SCES_Dept_Requirements.json',
+        scesScope: 'https://cpi.brocku.ca/SCESabout/SCES_Scope.json'
+    },
+};
+
+// Map field keys to descriptions
+const descriptionMap = {
+    'DIG': 'This department or program has a contact that is able to re-assign Instructors or TAs and opt instructors out on their behalf. This is typically limited to assigning TAs to secondaries.',
+    'Secondaries': 'This department or program has specific surveys for secondaries (Labs, Seminars, Tutorials).',
+    'Reports to contact': 'Survey reports are also sent to the program contact.',
+    'Reports to Chair': 'Survey reports are sent to the department chair.',
+    'Dept report': 'A department-level summary report is generated.'
+};
+
+(async function loadSCESWidget() {
+    const container = $('#sces-widget');
+    container.html('<p>Loading data...</p>');
+
+    try {
+        const [deptRes, scopeRes] = await Promise.all([
+            fetch(CONFIG.urls.deptRequirements),
+            fetch(CONFIG.urls.scesScope)
+        ]);
+
+        const deptData = await deptRes.json();
+        const scopeData = await scopeRes.json();
+
+        // Sort by Qbank Dept
+        deptData.sort((a, b) => a['Qbank Dept'].localeCompare(b['Qbank Dept']));
+
+        // Build dropdown
+        const selectHTML = `
+            <label for="programSelect"><strong>Select a program:</strong></label>
+            <select id="programSelect" class="form-control">
+                <option value="">-- Choose a program --</option>
+                ${deptData.map(d => `<option value="${d['Program-Name']}">${d['Qbank Dept']} - ${d['Program-Name']}</option>`).join('')}
+            </select>
+            <div id="sces-result" style="margin-top:1em;"></div>
+        `;
+        container.html(selectHTML);
+
+        // Handle selection
+        $('#programSelect').on('change', function() {
+            const selectedProgram = $(this).val();
+            const programInfo = deptData.find(d => d['Program-Name'] === selectedProgram);
+            const resultDiv = $('#sces-result');
+
+            if (programInfo) {
+                // Scope text
+                const scopeText = scopeData[programInfo.Scope] || "Unknown";
+
+                // Contact email(s)
+                const contactHTML = programInfo.Contact && programInfo.Contact !== "null"
+                    ? programInfo.Contact.split(';').map(u => 
+                        `<a href="mailto:${u}@brocku.ca">${u}@brocku.ca</a>`).join(', ')
+                    : 'Unknown';
+
+                // Filter 'Yes' values
+                const yesFields = Object.entries(programInfo)
+                    .filter(([key, value]) => value === "Yes")
+                    .map(([key]) => key.replace(/-/g, ' ')); // Clean up key names if needed
+
+                // Build result display
+                let html = `
+                    <h3>${programInfo['Qbank Dept']} - ${programInfo['Program-Name']}</h3>
+                    <p><strong>Online Survey Participation:</strong> ${scopeText}</p>
+                    <p><strong>CPI's Contact:</strong> ${contactHTML}</p>
+                `;
+
+                if (yesFields.length) {
+                    html += `<p><strong>Additional Notes:</strong></p><ul>`;
+                    yesFields.forEach(field => {
+                        const desc = descriptionMap[field] || `Flagged: ${field}`;
+                        html += `<li>${desc}</li>`;
+                });
+                html += `</ul>`;
+}
+
+                resultDiv.html(html);
+            } else {
+                resultDiv.html('');
+            }
+        });
+
+    } catch (error) {
+        container.html('<p>Error loading data.</p>');
+        console.error('SCES Widget Error:', error);
+    }
+})();
+</script>
+
+</body>
+</html>
