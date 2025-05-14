@@ -353,7 +353,7 @@ async function displaySCESContext(SCESoutputDiv) {
                     <div class="right rounded p-3 border">
                         <h2>About</h2>
                         ${courseRole == "Teaching Assistant" ? `<p>For Teaching Assistants, questions about Student Course Experience Surveys for this course should first be directed to the course instructor.</p>` : ''}
-                        ${QBankResults[0]['Secondaries'] === "Yes" ? `<p>Online Student Course Experience Surveys for ${QBankResults[0]['Program-Name']} (${QBank}) courses include separate surveys for Teaching Assistants.</p>` : ''}
+                        ${QBankResults[0]['Secondaries'] === "Yes" ? `<p>Online Student Course Experience Surveys for ${QBankResults[0]['Program-Name']} (${QBank}) courses include separate surveys for Teaching Assistants. These evaluations are actually associatd with the course instructor(s) until the contact(s) identifed below add TA information to the Blue system.</p>` : ''}
                         ${(QBankResults[0]['Reports to Chair'] === "Yes" || QBankResults[0]['Reports to Contact'] === "Yes") ? `
                             <p>A summary of online Student Course Experience Surveys for ${QBankResults[0]['Program-Name']} are sent to the department ${
                                 QBankResults[0]['Reports to Chair'] === "Yes" && QBankResults[0]['Reports to Contact'] === "Yes" ? 'Chair and Contact' :
