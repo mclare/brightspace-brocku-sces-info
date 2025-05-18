@@ -104,6 +104,15 @@ const descriptionMap = {
                         const desc = descriptionMap[field] || `Flagged: ${field}`;
                         html += `<li>${desc}</li>`;
                 });
+
+                // Check for exclusions array
+                if (programInfo.exclusions && programInfo.exclusions.length) {
+                    html += `<p><strong>Exclusions:</strong></p><ul>`;
+                    programInfo.exclusions.forEach(exclusion => {
+                        html += `<li>${exclusion}</li>`;
+                    });
+                    html += `</ul>`;
+                }
                 html += `</ul>`;
 }
 
