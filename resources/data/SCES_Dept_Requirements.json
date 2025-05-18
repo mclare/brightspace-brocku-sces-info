@@ -1,0 +1,26 @@
+[
+    {
+        "Qbank Dept": "ABTE-PS",
+        "Program-Name": "Aboriginal Studies-PS",
+        "Ancestor": "Education",
+        "Contact": "smcgean",
+        "Scope": "5",
+        "Secondaries": "No",
+        "DIG": "No",
+        "Reports to contact": "No",
+        "Reports to Chair": "No",
+        "Dept report": "No"
+    },
+    {
+        "Qbank Dept": "ACCC-UG",
+        "Program-Name": "Accounting-UG",
+        "Ancestor": "Goodman School of Business",
+        "Contact": "lzhu",
+        "Scope": "1",
+        "Secondaries": "No",
+        "DIG": "No",
+        "Reports to contact": "No",
+        "Reports to Chair": "No",
+        "Dept report": "No"
+    }
+}
