@@ -29,8 +29,8 @@
 <script>
 const CONFIG = {
     urls: {
-        deptRequirements: 'data/SCES_Dept_Requirements.json',
-        scesScope: 'data/SCES_Scope.json'
+        deptRequirements: './resources/data/SCES_Dept_Requirements.json',
+        scesScope: './resources/data/SCES_Scope.json'
     },
 };
 
@@ -98,14 +98,17 @@ const descriptionMap = {
                     <p><strong>CPI's Contact:</strong> ${contactHTML}</p>
                 `;
 
+                // Handle "Yes" values separately
                 if (yesFields.length) {
                     html += `<p><strong>Additional Notes:</strong></p><ul>`;
                     yesFields.forEach(field => {
                         const desc = descriptionMap[field] || `Flagged: ${field}`;
                         html += `<li>${desc}</li>`;
-                });
+                    });
+                    html += `</ul>`;
+                }
 
-                // Check for exclusions array
+                // Handle exclusions separately
                 if (programInfo.exclusions && programInfo.exclusions.length) {
                     html += `<p><strong>Exclusions:</strong></p><ul>`;
                     programInfo.exclusions.forEach(exclusion => {
@@ -113,10 +116,9 @@ const descriptionMap = {
                     });
                     html += `</ul>`;
                 }
-                html += `</ul>`;
-}
 
                 resultDiv.html(html);
+
             } else {
                 resultDiv.html('');
             }
