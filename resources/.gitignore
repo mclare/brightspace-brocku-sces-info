@@ -1,0 +1,3 @@
+# Ignore SCES data files
+data/SCES_Dept_Requirements.json
+data/SCES_Scope.json
