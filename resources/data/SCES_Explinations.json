@@ -1,0 +1,8 @@
+{
+    "Dept report": "A department-level summary report is generated.",
+    "DIG": "This department or program has a contact that is able to re-assign Instructors or TAs and opt instructors out on their behalf. This is typically limited to assigning TAs to secondaries.",
+    "exclusions": "Course codes that should not be evaluated",
+    "Reports to Chair": "Survey reports are sent to the department chair.",
+    "Reports to contact": "Survey reports are also sent to the program contact.",
+    "Secondaries": "This department or program has specific surveys for secondaries (Labs, Seminars, Tutorials). These evaluations are associated with the instructor(s) until the identified contact(s) add TA information to the Blue system."
+}

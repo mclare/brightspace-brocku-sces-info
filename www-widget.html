@@ -30,17 +30,9 @@
 const CONFIG = {
     urls: {
         deptRequirements: './resources/data/SCES_Dept_Requirements.json',
-        scesScope: './resources/data/SCES_Scope.json'
+        scesScope: './resources/data/SCES_Scope.json',
+        explanations: './resources/data/SCES_Explinations.json'
     },
-};
-
-// Map field keys to descriptions
-const descriptionMap = {
-    'DIG': 'This department or program has a contact that is able to re-assign Instructors or TAs and opt instructors out on their behalf. This is typically limited to assigning TAs to secondaries.',
-    'Secondaries': 'This department or program has specific surveys for secondaries (Labs, Seminars, Tutorials).',
-    'Reports to contact': 'Survey reports are also sent to the program contact.',
-    'Reports to Chair': 'Survey reports are sent to the department chair.',
-    'Dept report': 'A department-level summary report is generated.'
 };
 
 (async function loadSCESWidget() {
@@ -48,13 +40,15 @@ const descriptionMap = {
     container.html('<p>Loading data...</p>');
 
     try {
-        const [deptRes, scopeRes] = await Promise.all([
+        const [deptRes, scopeRes, explRes] = await Promise.all([
             fetch(CONFIG.urls.deptRequirements),
-            fetch(CONFIG.urls.scesScope)
+            fetch(CONFIG.urls.scesScope),
+            fetch(CONFIG.urls.explanations)
         ]);
 
         const deptData = await deptRes.json();
         const scopeData = await scopeRes.json();
+        const explanationData = await explRes.json();
 
         // Sort by Qbank Dept
         deptData.sort((a, b) => a['Qbank Dept'].localeCompare(b['Qbank Dept']));
@@ -102,7 +96,7 @@ const descriptionMap = {
                 if (yesFields.length) {
                     html += `<p><strong>Additional Notes:</strong></p><ul>`;
                     yesFields.forEach(field => {
-                        const desc = descriptionMap[field] || `Flagged: ${field}`;
+                        const desc = explanationData[field] || `Flagged: ${field}`;
                         html += `<li>${desc}</li>`;
                     });
                     html += `</ul>`;
