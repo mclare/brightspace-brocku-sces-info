@@ -17,8 +17,7 @@ First Link:
 - Behaviour: Same window
 - Availability:
 	- Share with child org units
-	- Limit to specific roles
-		- Select all roles that should create schedules (not students)
+	- Limit to specific roles, if needed
 - Save
 
 # Acknowledgements
