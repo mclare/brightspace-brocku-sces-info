@@ -153,8 +153,12 @@ function processCourseCode(code) {
         QBank = `${dept}-PS`;
     } else if (num === 7) {
         QBank = `${dept}-PH`;
+    } else if (num === 5) {
+        QBank = `${dept}-MS`;
     } else if (dept == "EDBE") {
         QBank = `EDBE-PS`; //unique case
+    }  else if (dept == "MBAB") {
+        QBank = `MBAB-MB`; //unique case
     } else if (num <= 4) {
         QBank = `${dept}-UG`;
     } else {
