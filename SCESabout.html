@@ -133,10 +133,10 @@ function processCourseCode(code) {
     
     // Extract the department and number parts
     const dept = parts[4]; // 4th position after splitting
-   // const num = parseInt(parts[5][0], 10); // First digit after the 5th dash
-   const num = 0;
-   if (parts.length > 4) {
-        const num = parseInt(parts[5][0], 10); // First digit after the 5th dash
+    
+    let num = 0; //Set an initial value for course level
+    if (parts.length > 4) {
+        num = parseInt(parts[5][0], 10); // First digit after the 5th dash should be the course level
     }
     
     if (isNaN(num)) {
@@ -147,18 +147,19 @@ function processCourseCode(code) {
     courseCode = code; // Store the original course code
     courseType = parts[6];
     offeringCode = parts[4] + "-" + parts[5];
-    
+    console.log("courseCode: " + courseCode + " courseType: " + courseType + " offeringCode: " + offeringCode + " level: " + num + " Full course code parts are: " + parts);
+
     // Determine QBank
     if (num === 8) {
         QBank = `${dept}-PS`;
     } else if (num === 7) {
         QBank = `${dept}-PH`;
-    } else if (num === 5) {
-        QBank = `${dept}-MS`;
-    } else if (dept == "EDBE") {
+    }  else if (dept == "EDBE") {
         QBank = `EDBE-PS`; //unique case
     }  else if (dept == "MBAB") {
         QBank = `MBAB-MB`; //unique case
+    } else if (num === 5) { //Make sure we're look carefully at level
+        QBank = `${dept}-MS`;
     } else if (num <= 4) {
         QBank = `${dept}-UG`;
     } else {
