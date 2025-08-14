@@ -1,37 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCES About</title>
 <link rel="stylesheet" href="resources/css/bootstrap.5.3.2.min.css">
-<link rel="stylesheet" type="text/css" href="https://s.brightspace.com/apps/brightspace/20.25.2.15477/web-packages/D2L.PlatformTools.Homepage.css" />
-<link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2025.2.233/homepages.css" />
+<link rel="stylesheet" type="text/css" href="https://s.brightspace.com/apps/brightspace/20.25.2.15477/web-packages/D2L.PlatformTools.Homepage.css">
+<link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2025.2.233/homepages.css">
 <style>
-/*import brightspace fonts*/
-@font-face{font-family:'Lato';src:url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-400.woff2');}
-@font-face{font-family:'Lato';src:url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-700.woff2');font-weight:bold;}
-*{font-size:18px;font-family:Lato,'Lucida Sans','Lucida Sans Regular','Lucida Grande','Lucida Sans Unicode',Geneva,Verdana,sans-serif;}
-.container-fluid{padding:0px 30px 20px 30px;max-width:1230px;margin:auto;}
-input[type=text],label,textarea{width:100%;}
-input[type=checkbox],input[type=radio]{width:25px;height:25px;margin:0;}
-label{margin-bottom:0;}
-label.inline{width:auto;padding:0 0 0 10px;margin-right:10px;}
-h3,h4{font-weight:bold;font-size:18px;}
-.error{color:red;margin-top:10px;}
-.warn{margin-top:10px;text-align:center;}
-#summary{margin:20px;font-size:larger;}
-#SCESOutput{margin:20px auto 0;text-align:center;padding:0 10%;}
-.container{display:flex;width:100%;}
-#seperateStudentPreview{margin:20px;}
-#previewStudentGuidance{border:1px solid #555;padding:10px;margin:1%;font-size:.9em;color:#555;line-height:1.5;}
-.left{flex:2;background-color:#f4f4f4;padding:20px;text-align:left;margin-right:4%;}
-.right{flex:1;background-color:#ddd;padding:20px;text-align:left;}
-ul{list-style-type:disc;margin:36px 0;padding-left:20px;}
-ul li{margin-bottom:8px;line-height:1.5;}
-body{margin:auto;padding:auto;}
-h2{font-size:140%;}
-.right h2{margin-bottom:1.1em;}
+/* Import brightspace fonts */
+@font-face { font-family: 'Lato'; src: url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-400.woff2'); }
+@font-face { font-family: 'Lato'; src: url('https://s.brightspace.com/lib/fonts/0.5.0/assets/Lato-700.woff2'); font-weight: bold; }
+* { font-size: 18px; font-family: Lato, 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; }
+.container-fluid { padding: 0 30px 20px; max-width: 1230px; margin: auto; }
+input[type=text],
+label,
+textarea { width: 100%; }
+input[type=checkbox],
+input[type=radio] { width: 25px; height: 25px; margin: 0; }
+label { margin-bottom: 0; }
+label.inline { width: auto; padding: 0 0 0 10px; margin-right: 10px; }
+h3,
+h4 { font-weight: bold; font-size: 18px; }
+.error { color: red; margin-top: 10px; }
+.warn { margin-top: 10px; text-align: center; }
+#summary { margin: 20px; font-size: larger; }
+#SCESOutput { margin: 20px auto 0; text-align: center; padding: 0 10%; }
+.container { display: flex; width: 100%; }
+#seperateStudentPreview { margin: 20px; }
+#previewStudentGuidance { border: 1px solid #555; padding: 10px; margin: 1%; font-size: 0.9em; color: #555; line-height: 1.5; }
+.left { flex: 2; background-color: #f4f4f4; padding: 20px; text-align: left; margin-right: 4%; }
+.right { flex: 1; background-color: #ddd; padding: 20px; text-align: left; }
+ul { list-style-type: disc; margin: 36px 0; padding-left: 20px; }
+ul li { margin-bottom: 8px; line-height: 1.5; }
+body { margin: 0; padding: 0; }
+body,
+h2 { font-size: 140%; }
+.right h2 { margin-bottom: 1.1em; }
+
+/* Message styles */
+#messages { margin: 20px 0; padding: 0 10px; }
+#messages h2 { color: #2c3e50; margin-bottom: 15px; font-size: 1.5em; }
+.message { background-color: #f8f9fa;border-left: 4px solid #3498db;padding: 15px;margin-bottom: 15px;border-radius: 4px;box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+.message.high { border-left-color: #e74c3c;background-color: #fde8e8;}
+.message.medium { border-left-color: #f39c12;background-color: #fef5e8;}
+.message h3 { margin-top: 0;margin-bottom: 10px;color: #2c3e50;font-size: 1.2em;}
+.message p { margin: 0;color: #34495e;line-height: 1.5;}
 </style>
 <script type="text/javascript" src="resources/js/jquery-2.2.4.min.js"></script>
 <script type="text/javascript" src="resources/js/brightspace.js?v=1.0"></script>
@@ -43,17 +56,17 @@ h2{font-size:140%;}
     }
     let ORG_UNIT_ID = match[1];
 </script>
-</head>
-<body class="content" role="document"><div class="container-fluid">
-<script>
+</head><body class="content" role="document"><div class="container-fluid"><script>
 // Configuration
 const CONFIG = {
     urls: {
         deptRequirements: './resources/data/SCES_Dept_Requirements.json',
-        scesScope: './resources/data/SCES_Scope.json'
+        scesScope: './resources/data/SCES_Scope.json',
+        messages: './resources/data/Messages.json'
     },
     onlineCourseTypes: ['WWW', 'SYN', 'SYO', 'ASY', 'ASO', 'HYF'] // Brock University online course types
 };
+
 
 const SCESStudentScope = []; //SCES Student Scope is an array of strings that are used to display the student guidance based on the SCES Scope value, but since some are reused, it's easier to just use an array
 SCESStudentScope[0]= `Unknown course offering`; //This course is not participating in online Student Course Experience Surveys.
@@ -79,6 +92,7 @@ let courseRole = "";
 let dept = "";
 let output = '';
 let summary = 'This course does not participate in online Student Course Experience Surveys.';
+let activeMessages = [];
 
 const onlineCourseTypes = CONFIG.onlineCourseTypes;
 
@@ -133,8 +147,9 @@ function processCourseCode(code) {
     
     // Extract the department and number parts
     const dept = parts[4]; // 4th position after splitting
-    
-    let num = 0; //Set an initial value for course level
+   // const num = parseInt(parts[5][0], 10); // First digit after the 5th dash
+   
+    let num = 0;
     if (parts.length > 4) {
         num = parseInt(parts[5][0], 10); // First digit after the 5th dash should be the course level
     }
@@ -147,7 +162,6 @@ function processCourseCode(code) {
     courseCode = code; // Store the original course code
     courseType = parts[6];
     offeringCode = parts[4] + "-" + parts[5];
-    console.log("courseCode: " + courseCode + " courseType: " + courseType + " offeringCode: " + offeringCode + " level: " + num + " Full course code parts are: " + parts);
 
     // Determine QBank
     if (num === 8) {
@@ -165,6 +179,7 @@ function processCourseCode(code) {
     } else {
         QBank = `${dept}-MS`;
     }
+    console.log("QBank: " + QBank + " courseCode: " + courseCode + " courseType: " + courseType + " offeringCode: " + offeringCode + " level: " + num + " Full course code parts are: " + parts);
 }
 
 async function setCourseRole() {
@@ -182,7 +197,7 @@ async function loadData() {
         const response = await fetch(CONFIG.urls.deptRequirements);
         if (!response.ok  == true) throw new Error(`HTTP error! status: ${response.status}`);
         const jsonData = await response.json();
-        console.log("Loaded JSON:", jsonData); // Debugging
+        //console.log("Loaded JSON:", jsonData); // Debugging
         return jsonData;
     } catch (jsonError) {
         console.warn("Failed to load JSON file.", jsonError);
@@ -273,7 +288,7 @@ async function lookupSCES(outputDiv) {
             }
 
                 // Display the context with the loaded data
-            displaySCESContext(SCESOutput);
+            await displaySCESContext(SCESOutput);
         } else {
             // Not a Brock course
             SCESOutput.innerHTML = `
@@ -296,6 +311,8 @@ async function lookupSCES(outputDiv) {
  * @param {HTMLElement} SCESoutputDiv - The output container element
  */
 async function displaySCESContext(SCESoutputDiv) {
+    // Load and filter messages now that we have the QBank set
+    await loadAndFilterMessages();
     let studentGuidance = '';
     let summary = '';
 
@@ -344,8 +361,27 @@ async function displaySCESContext(SCESoutputDiv) {
             summary = 'This course is not participating in online Student Course Experience Surveys.';
         }
         
+        // Add active messages if any
+        let messagesHtml = '';
+        if (activeMessages && activeMessages.length > 0) {
+            messagesHtml = '<div id="messages"><h2>Important Notices</h2><div class="message-container">';
+            activeMessages.forEach(msg => {
+                messagesHtml += `
+                    <div class="message ${msg.priority}">
+                        <h3>${msg.title}</h3>
+                        <p>${msg.message}</p>
+                    </div>`;
+            });
+            messagesHtml += '</div></div>';
+        }
+        
         // Construct HTML content for the output
-        let output = `<div id="summary"><h1>Student Course Experience Surveys for <br>${courseCode}</h1><p>${summary}</p></div>`;
+        let output = `
+            <div id="summary">
+                <h1>Student Course Experience Surveys for <br>${courseCode}</h1>
+                <p>${summary}</p>
+            </div>
+            ${messagesHtml}`;
         
         if (courseRole == "Student") {
             output += `<div id="guidance" >${studentGuidance}</div>`;
@@ -409,32 +445,125 @@ async function displaySCESContext(SCESoutputDiv) {
     }
 }
 
+async function loadAndFilterMessages() {
+    // Set to true to enable debug logging
+    const DEBUG = false;
+    
+    // Helper function for debug logging
+    const debugLog = (...args) => {
+        if (DEBUG) {
+            console.log(...args);
+        }
+    };
+    
+    // Helper function for debug group
+    const debugGroup = DEBUG ? console.group : () => {};
+    const debugGroupEnd = DEBUG ? console.groupEnd : () => {};
+    try {
+        debugLog('Loading messages from:', CONFIG.urls.messages);
+        
+        // First try to load from the remote URL defined in CONFIG
+        const response = await fetch(CONFIG.urls.messages);
+        if (!response.ok) {
+            if (DEBUG) console.error('Failed to fetch messages:', response.status, response.statusText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const messages = await response.json();
+        debugLog('Total messages received:', messages.length);
+        
+        if (!Array.isArray(messages)) {
+            if (DEBUG) console.error('Expected messages to be an array, got:', typeof messages);
+            throw new Error('Invalid messages format: expected an array');
+        }
+        
+        const now = new Date();
+        debugLog('Current time for filtering:', now.toISOString());
+        debugLog('Current user role:', courseRole);
+        
+        // Filter messages based on current date/time and user role
+        activeMessages = messages.filter(msg => {
+            debugGroup('Message:', msg.id || 'unnamed', msg.title || 'No title');
+            try {
+                const startTime = new Date(msg.start_time);
+                const endTime = new Date(msg.end_time);
+                const isActive = now >= startTime && now <= endTime;
+                const isVisibleToUser = (courseRole !== 'Student' || msg.visible_to_students !== false);
+                
+                debugLog('Dates - Start:', startTime.toISOString(), 'End:', endTime.toISOString());
+                debugLog('Visibility - Active:', isActive, 'Visible to user:', isVisibleToUser, 'Role:', courseRole);
+                
+                if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+                    if (DEBUG) console.warn('Invalid date in message');
+                    debugGroupEnd();
+                    return false;
+                }
+                
+                if (!msg.title || !msg.message) {
+                    if (DEBUG) console.warn('Missing required fields');
+                    debugGroupEnd();
+                    return false;
+                }
+                
+                // Check department restrictions if any
+                const hasDepartmentRestriction = Array.isArray(msg.affected_departments) && 
+                                              msg.affected_departments.length > 0;
+                
+                // Debug logging
+                if (hasDepartmentRestriction) {
+                    debugLog('Checking department restrictions for message:', msg.id);
+                    debugLog('QBank:', QBank, 'Affected departments:', msg.affected_departments);
+                    debugLog('Includes check:', msg.affected_departments.includes(QBank));
+                    debugLog('Case-insensitive check:', 
+                        msg.affected_departments.some(dept => 
+                            dept.trim().toLowerCase() === QBank.toLowerCase()
+                        )
+                    );
+                }
+
+                const isForCurrentDepartment = !hasDepartmentRestriction || 
+                    (QBank && msg.affected_departments.some(dept => 
+                        dept.trim().toLowerCase() === QBank.toLowerCase()
+                    ));
+                
+                debugLog(`Message ${msg.id} - isActive: ${isActive}, isVisibleToUser: ${isVisibleToUser}, isForCurrentDepartment: ${isForCurrentDepartment}`);
+                return isActive && isVisibleToUser && isForCurrentDepartment;
+            } catch (e) {
+                if (DEBUG) console.error('Error processing message:', msg?.id, e);
+                return false;
+            }
+        });
+        
+        // Sort by priority (high > medium > low)
+        activeMessages.sort((a, b) => {
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            const aPriority = priorityOrder[a.priority] ?? 2; // Default to low priority
+            const bPriority = priorityOrder[b.priority] ?? 2; // Default to low priority
+            return aPriority - bPriority;
+        });
+        
+    } catch (error) {
+        console.error('Error loading remote messages:', error);
+        activeMessages = []; // Return empty array if there's an error
+        throw error; // Re-throw the error to be handled by the caller
+    }
+    
+    debugLog('Active messages loaded:', activeMessages.length);
+}
+
 // Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        // Start by getting course data, then look up SCES information
-        getCourse()
-            .then(() => {
-                lookupSCES(document.getElementById('SCESOutput'));
-            })
-            .catch(error => {
-                // Handle any initialization errors
-                console.error('Error initializing SCES information:', error);
-                const outputDiv = document.getElementById('SCESOutput') || document.body;
-                outputDiv.innerHTML = `
-                    <div class="alert alert-danger">
-                        <h2>Error</h2>
-                        <p>An error occurred while loading course information. Please refresh the page to try again.</p>
-                    </div>`;
-            });
-    } catch (error) {
-        console.error('Fatal error during initialization:', error);
-        const outputDiv = document.getElementById('SCESOutput') || document.body;
-        outputDiv.innerHTML = `
-            <div class="alert alert-danger">
-                <h2>Critical Error</h2>
-                <p>A critical error occurred. Please refresh the page to try again.</p>
-            </div>`;
+    const outputDiv = document.getElementById('SCESOutput');
+    if (outputDiv) {
+        lookupSCES(outputDiv).catch(error => {
+            console.error('Fatal error during initialization:', error);
+            outputDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h2>Error</h2>
+                    <p>A fatal error occurred while initializing the application. Please refresh the page to try again.</p>
+                    <p>${error.message || 'Unknown error'}</p>
+                </div>`;
+        });
     }
 });
 
