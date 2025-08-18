@@ -7,21 +7,24 @@
     <script src="./resources/js/jquery-2.2.4.min.js"></script>
 </head>
 <style>
-    #sces-widget {
-        font-family: sans-serif;background: #f9f9f9;border: 1px solid #ccc;padding: 1em;border-radius: 8px;max-width: 800px;
-    }
-    #sces-widget select {
-        padding: 0.5em;font-size: 1em;
-    }
-    #sces-result h3 {
-        margin-top: 1em;color: #CC0000;
-    }
-    #sces-result a {
-        color: #0077cc;text-decoration: none;
-    }
-    #sces-result a:hover {
-        text-decoration: underline;
-    }
+    #sces-widget { font-family: sans-serif;background: #f9f9f9;border: 1px solid #ccc;padding: 1em;border-radius: 8px;max-width: 800px;}
+    #sces-widget select { padding: 0.5em;font-size: 1em;}
+    #sces-result h3 { margin-top: 1em;color: #CC0000;}
+    #sces-result a { color: #0077cc;text-decoration: none;}
+    
+    /* Program details styling */
+    .program-details {background: white;border-radius: 6px;padding: 1rem;box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    .detail-item {display: flex;margin-bottom: 0.8rem;line-height: 1.5;}
+    .detail-label {font-weight: 600;color: #333;min-width: 200px;flex-shrink: 0;}
+    .detail-value {color: #555;flex-grow: 1;}
+    .additional-notes {margin-top: 1rem;border-top: 1px solid #eee;}
+    .additional-notes ul {margin: 0.5rem 0 0 0;padding-left: 1.5rem;}
+    .additional-notes li {margin-bottom: 0.5rem;}
+    
+    #sces-result a:hover {text-decoration: underline;}
+    
+    .message-note {margin: 0.5rem 0;padding: 0.5rem 0 0 1rem;background-color: #f8f9fa;border-left: 3px solid #007bff;border-right: 3px solid #007bff;border-radius: 3px;list-style-type: none;padding: 0.5rem 0.5rem 0 0.5rem;}
+    .priority-high {color: #dc3545;font-weight: bold;margin-left: 0.5rem;}
     </style>
 <body>
 <div id="sces-widget" class="sces-widget"></div>
@@ -31,7 +34,8 @@ const CONFIG = {
     urls: {
         deptRequirements: './resources/data/SCES_Dept_Requirements.json',
         scesScope: './resources/data/SCES_Scope.json',
-        explanations: './resources/data/SCES_Explinations.json'
+        explanations: './resources/data/SCES_Explinations.json',
+        messages: './resources/data/Messages.json'
     },
 };
 
@@ -40,25 +44,103 @@ const CONFIG = {
     container.html('<p>Loading data...</p>');
 
     try {
-        const [deptRes, scopeRes, explRes] = await Promise.all([
-            fetch(CONFIG.urls.deptRequirements),
-            fetch(CONFIG.urls.scesScope),
-            fetch(CONFIG.urls.explanations)
+        // Show loading state
+        container.html('<div class="alert alert-info">Loading program data...</div>');
+
+        // Helper function to handle fetch with error handling
+        const fetchWithErrorHandling = async (url, resourceName) => {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error loading ${resourceName}:`, error);
+                container.html(`
+                    <div class="alert alert-danger">
+                        <h4>Error Loading Data</h4>
+                        <p>Failed to load ${resourceName}. Please try again later.</p>
+                        <p><small>Error details: ${error.message}</small></p>
+                    </div>
+                `);
+                throw error; // Re-throw to be caught by Promise.allSettled
+            }
+        };
+
+        // Make all fetch requests with error handling
+        const [deptData, scopeData, explanationData, messagesData] = await Promise.allSettled([
+            fetchWithErrorHandling(CONFIG.urls.deptRequirements, 'department requirements'),
+            fetchWithErrorHandling(CONFIG.urls.scesScope, 'scope information'),
+            fetchWithErrorHandling(CONFIG.urls.explanations, 'explanation data'),
+            fetchWithErrorHandling(CONFIG.urls.messages, 'messages')
         ]);
 
-        const deptData = await deptRes.json();
-        const scopeData = await scopeRes.json();
-        const explanationData = await explRes.json();
+        // Check if any promises were rejected
+        const results = { deptData, scopeData, explanationData, messagesData };
+        const failed = Object.entries(results).filter(([_, result]) => result.status === 'rejected');
+        
+        if (failed.length > 0) {
+            const errorMessages = failed.map(([key]) => key.replace('Data', ' data')).join(', ');
+            container.html(`
+                <div class="alert alert-warning">
+                    <h4>Partial Data Loaded</h4>
+                    <p>Some data could not be loaded (${errorMessages}). Some features may be limited.</p>
+                </div>
+            `);
+        }
+
+        // Extract values from successful promises
+        const deptDataValue = deptData.status === 'fulfilled' ? deptData.value : [];
+        const scopeDataValue = scopeData.status === 'fulfilled' ? scopeData.value : {};
+        const explanationDataValue = explanationData.status === 'fulfilled' ? explanationData.value : {};
+        const messagesDataValue = messagesData.status === 'fulfilled' ? messagesData.value : [];
+
+        if (deptDataValue.length === 0) {
+            container.html('<div class="alert alert-warning">No program data available. Please try again later.</div>');
+            return;
+        }
+        
+        // Function to get active messages for a department
+        const getActiveMessages = (departmentCode) => {
+            if (!Array.isArray(messagesDataValue) || messagesDataValue.length === 0) {
+                return [];
+            }
+
+            const now = new Date();
+            
+            return messagesDataValue.filter(message => {
+                // Skip if not visible to students
+                if (message.visible_to_students === false) {
+                    return false;
+                }
+                
+                // Check if message is within date range
+                const startTime = new Date(message.start_time);
+                const endTime = new Date(message.end_time);
+                if (now < startTime || now > endTime) {
+                    return false;
+                }
+                
+                // If no specific departments are specified, show to all
+                if (!message.affected_departments || message.affected_departments.length === 0) {
+                    return true;
+                }
+                
+                // Check if the department matches any in affected_departments
+                return message.affected_departments.includes(departmentCode);
+            });
+        };
 
         // Sort by Qbank Dept
-        deptData.sort((a, b) => a['Qbank Dept'].localeCompare(b['Qbank Dept']));
+        deptDataValue.sort((a, b) => a['Qbank Dept'].localeCompare(b['Qbank Dept']));
 
         // Build dropdown
         const selectHTML = `
             <label for="programSelect"><strong>Select a program:</strong></label>
             <select id="programSelect" class="form-control">
                 <option value="">-- Choose a program --</option>
-                ${deptData.map(d => `<option value="${d['Program-Name']}">${d['Qbank Dept']} - ${d['Program-Name']}</option>`).join('')}
+                ${deptDataValue.map(d => `<option value="${d['Program-Name']}">${d['Qbank Dept']} - ${d['Program-Name']}</option>`).join('')}
             </select>
             <div id="sces-result" style="margin-top:1em;"></div>
         `;
@@ -67,39 +149,65 @@ const CONFIG = {
         // Handle selection
         $('#programSelect').on('change', function() {
             const selectedProgram = $(this).val();
-            const programInfo = deptData.find(d => d['Program-Name'] === selectedProgram);
+            const programInfo = deptDataValue.find(d => d['Program-Name'] === selectedProgram);
             const resultDiv = $('#sces-result');
 
             if (programInfo) {
-                // Scope text
-                const scopeText = scopeData[programInfo.Scope] || "Unknown";
+                // Scope text - fallback to 'Unknown' if scope data failed to load
+                const scopeText = scopeDataValue[programInfo.Scope] || "Unknown";
 
                 // Contact email(s)
                 const contactHTML = programInfo.Contact && programInfo.Contact !== "null"
-                    ? programInfo.Contact.split(';').map(u => 
-                        `<a href="mailto:${u}@brocku.ca">${u}@brocku.ca</a>`).join(', ')
-                    : 'Unknown';
+                    ? programInfo.Contact.split(';')
+                        .map(u => u.trim())
+                        .filter(u => u.length > 0)
+                        .map(u => `<a href="mailto:${u}@brocku.ca">${u}@brocku.ca</a>`)
+                        .join(', ')
+                    : 'Not specified';
 
                 // Filter 'Yes' values
                 const yesFields = Object.entries(programInfo)
                     .filter(([key, value]) => value === "Yes")
                     .map(([key]) => key.replace(/-/g, ' ')); // Clean up key names if needed
 
+                // Get active messages for this department
+                const activeMessages = getActiveMessages(programInfo['Qbank Dept']);
+
                 // Build result display
                 let html = `
-                    <h3>${programInfo['Qbank Dept']} - ${programInfo['Program-Name']}</h3>
-                    <p><strong>Online Survey Participation:</strong> ${scopeText}</p>
-                    <p><strong>CPI's Contact:</strong> ${contactHTML}</p>
+                    <div class="program-details">
+                        <h3>${programInfo['Qbank Dept']} - ${programInfo['Program-Name']}</h3>
+                        <div class="detail-item">
+                            <span class="detail-label">Online Survey Participation:</span>
+                            <span class="detail-value">${scopeText}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">CPI's Contact:</span>
+                            <span class="detail-value">${contactHTML}</span>
+                        </div>
+                    </div>
                 `;
 
-                // Handle "Yes" values separately
-                if (yesFields.length) {
-                    html += `<p><strong>Additional Notes:</strong></p><ul>`;
+                // Handle "Yes" values and active messages
+                if (yesFields.length > 0 || activeMessages.length > 0) {
+                    html += `<div class="additional-notes"><p><strong>Additional Notes:</strong></p><ul>`;
+                    
+                    // Add yes fields if any
                     yesFields.forEach(field => {
-                        const desc = explanationData[field] || `Flagged: ${field}`;
+                        const desc = explanationDataValue[field] || `Flagged: ${field}`;
                         html += `<li>${desc}</li>`;
                     });
-                    html += `</ul>`;
+                    
+                    // Add active messages if any
+                    activeMessages.forEach(msg => {
+                        html += `
+                            <li class="message-note">
+                                <strong>${msg.title}:</strong> ${msg.message}
+                                ${msg.priority === 'high' ? '<span class="priority-high">(High Priority)</span>' : ''}
+                            </li>`;
+                    });
+                    
+                    html += `</ul></div>`;
                 }
 
                 // Handle exclusions separately
